@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.crawler.backend.utils.Constants.MAX_KEYWORD_LENGTH;
 import static com.crawler.backend.utils.Constants.MIN_KEYWORD_LENGTH;
@@ -29,7 +30,6 @@ public class CrawlerService {
 
     public PostResponseBody crawl(PostRequestBody body) {
         String keyword = body.getKeyword();
-        String baseUrl  = Constants.BASE_URL;
         String id = IdGenerator.getId();
 
         if(isKeywordValid(keyword))
@@ -38,7 +38,7 @@ public class CrawlerService {
         Run newRun = new Run(id);
         runs.put(id, newRun);
 
-        readAndAddIfMatches(keyword, baseUrl, newRun);
+        CompletableFuture.runAsync(() -> readAndAddIfMatches(keyword, Constants.BASE_URL, newRun));
 
         return new PostResponseBody(id);
     }
@@ -48,7 +48,6 @@ public class CrawlerService {
     }
 
     private void readAndAddIfMatches(String keyword, String url, Run newRun) {
-        CompletableFuture.runAsync(() -> {
             StringBuilder buffer;
             try {
                 InputStream is = new URL(url).openStream();
@@ -65,17 +64,28 @@ public class CrawlerService {
 
             String html = buffer.toString().toLowerCase();
             if(html.contains(keyword.toLowerCase()))
-                newRun.addUrl(url);
+                newRun.addMatchUrl(url);
 
             List<String> urlsOnPage = getUrlsOnPage(html);
-            urlsOnPage.forEach(newUrl -> readAndAddIfMatches(keyword, url, newRun));
+
+            List<String> newUrls = urlsOnPage.stream()
+                    // Process only if contains the same base URL
+                    .filter(urlOnPage -> urlOnPage.contains(Constants.BASE_URL))
+                    // Not processed before
+                    .filter(urlOnPage -> !newRun.getPreviousUrls().contains(urlOnPage))
+                    .collect(Collectors.toList());
+
+            newUrls.forEach(newUrl ->  {
+                readAndAddIfMatches(keyword, newUrl, newRun);
+                newRun.addPreviousUrl(newUrl);
+            });
 
             newRun.setStatus(Status.DONE);
-        });
+
     }
 
     private List<String> getUrlsOnPage(String html) {
-        Pattern linkPattern = Pattern.compile("(<a[^>]+>.+?</a>)",  Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+        Pattern linkPattern = Pattern.compile("(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",  Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
         Matcher pageMatcher = linkPattern.matcher(html);
 
         List<String> links = new ArrayList<>();

@@ -8,7 +8,9 @@ import java.util.List;
 public class Run {
     String id;
     Status status;
-    List<String> urls = new ArrayList<>();
+    List<String> matchUrls = new ArrayList<>();
+    List<String> previousUrls = new ArrayList<>();
+
 
     public Run(String id) {
         this.id = id;
@@ -19,7 +21,16 @@ public class Run {
         this.status = status;
     }
 
-    public void addUrl(String url) {
-        this.urls.add(url);
+    public void addMatchUrl(String url) {
+        this.matchUrls.add(url);
+    }
+
+
+    public void addPreviousUrl(String previousUrl) {
+        this.previousUrls.add(previousUrl);
+    }
+
+    public List<String> getPreviousUrls() {
+        return previousUrls;
     }
 }
