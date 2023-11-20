@@ -10,9 +10,9 @@ public class Run {
     Status status;
     List<String> urls = new ArrayList<>();
 
-    public Run(String id, Status status) {
+    public Run(String id) {
         this.id = id;
-        this.status = status;
+        this.status = Status.ACTIVE;
     }
 
     public void setStatus(Status status) {

@@ -8,10 +8,12 @@ import com.crawler.backend.models.PostResponseBody;
 import com.crawler.backend.models.enums.Status;
 import com.crawler.backend.utils.Constants;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 import static com.crawler.backend.utils.Constants.MAX_KEYWORD_LENGTH;
 import static com.crawler.backend.utils.Constants.MIN_KEYWORD_LENGTH;
@@ -24,7 +26,7 @@ public class CrawlerService {
         return Optional.ofNullable(runs.get(id)).orElseThrow();
     }
 
-    public PostResponseBody crawl(PostRequestBody body) throws InterruptedException {
+    public PostResponseBody crawl(PostRequestBody body) {
         String keyword = body.getKeyword();
         String baseUrl  = Constants.BASE_URL;
         String id = IdGenerator.getId();
@@ -33,26 +35,26 @@ public class CrawlerService {
             throw new InvalidKeywordException();
 
 
-        Run newRun = new Run(id, Status.ACTIVE);
+        Run newRun = new Run(id);
         runs.put(id, newRun);
 
 
 
         CompletableFuture.runAsync(() -> {
-            newRun.addUrl("URL1");
+
+            StringBuilder buffer;
             try {
-                TimeUnit.SECONDS.sleep(30);
-            } catch (InterruptedException e) {
+                InputStream is = new URL(baseUrl).openStream();
+                buffer = new StringBuilder();
+
+                int ptr;
+                while (!((ptr = is.read()) == -1))
+                    buffer.append((char)ptr);
+
+            } catch (IOException e) {
+                newRun.setStatus(Status.ERROR);
                 throw new RuntimeException(e);
             }
-
-            newRun.addUrl("URL2");
-            try {
-                TimeUnit.SECONDS.sleep(30);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
 
             newRun.setStatus(Status.DONE);
         });

@@ -1,6 +1,7 @@
 package com.crawler.backend.models.enums;
 
 public enum Status {
-    ACTIVE ,
-    DONE;
+    ACTIVE,
+    DONE,
+    ERROR
 }

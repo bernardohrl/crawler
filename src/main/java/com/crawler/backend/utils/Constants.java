@@ -1,9 +1,13 @@
 package com.crawler.backend.utils;
 
+import java.util.Objects;
+
 public class Constants {
 
     // URLs and Endpoints
-    public static final String BASE_URL = (!System.getenv("BASE_URL").isBlank()) ? System.getenv("BASE_URL") : "http://hiring.axreng.com/";
+    public static final String BASE_URL = (!Objects.isNull(System.getenv("BASE_URL")))
+            ? System.getenv("BASE_URL")
+            : "http://hiring.axreng.com/";
     public static final String POST_ENDPOINT = "/crawl";
     public static final String GET_ENDPOINT = "/crawl/:id";
 
