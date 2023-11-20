@@ -13,4 +13,8 @@ public class Constants {
     public static final int MAX_KEYWORD_LENGTH = 32;
     public static final String INVALID_KEYWORD_MESSAGE = "Invalid Keyword: It should be between 4 and 32 characters.";
 
+    // General
+    public static final String UNEXPECTED_ERROR = "Unexpected Error: ";
+    public static final String ID_NOT_FOUND_MESSAGE = "Invalid ID: No run found with this ID.";
+
 }
