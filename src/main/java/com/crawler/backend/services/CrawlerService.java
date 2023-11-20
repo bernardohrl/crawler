@@ -1,13 +1,13 @@
 package com.crawler.backend.services;
 
 import com.crawler.backend.exceptions.InvalidKeywordException;
+import com.crawler.backend.helper.IdGenerator;
 import com.crawler.backend.models.GetResponseBody;
 import com.crawler.backend.models.PostRequestBody;
 import com.crawler.backend.models.PostResponseBody;
 import com.crawler.backend.models.enums.Status;
 import com.crawler.backend.utils.Constants;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.crawler.backend.utils.Constants.MAX_KEYWORD_LENGTH;
@@ -20,14 +20,19 @@ public class CrawlerService {
     }
 
     public PostResponseBody crawl(PostRequestBody body) {
-        String baseUrl  = Constants.BASE_URL;
         String keyword = body.getKeyword();
-        System.out.println("POST /crawl/  "  + baseUrl + "   " + keyword);
-
         if(isKeywordValid(keyword))
             throw new InvalidKeywordException();
 
-        return new PostResponseBody("12345678");
+        String id = IdGenerator.getId();
+
+
+
+        String baseUrl  = Constants.BASE_URL;
+
+        System.out.println("POST /crawl/  "  + baseUrl + "   " + keyword);
+
+        return new PostResponseBody(id);
     }
 
     private boolean isKeywordValid (String keyword) {
