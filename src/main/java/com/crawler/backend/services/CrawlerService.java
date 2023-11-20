@@ -10,6 +10,8 @@ import com.crawler.backend.utils.Constants;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static com.crawler.backend.utils.Constants.MAX_KEYWORD_LENGTH;
 import static com.crawler.backend.utils.Constants.MIN_KEYWORD_LENGTH;
@@ -22,7 +24,7 @@ public class CrawlerService {
         return Optional.ofNullable(runs.get(id)).orElseThrow();
     }
 
-    public PostResponseBody crawl(PostRequestBody body) {
+    public PostResponseBody crawl(PostRequestBody body) throws InterruptedException {
         String keyword = body.getKeyword();
         String baseUrl  = Constants.BASE_URL;
         String id = IdGenerator.getId();
@@ -34,11 +36,26 @@ public class CrawlerService {
         Run newRun = new Run(id, Status.ACTIVE);
         runs.put(id, newRun);
 
-        // Goes thought URLs and add to run instance.
-        newRun.addUrl("URL1");
 
 
-//        newRun.setStatus(Status.DONE);
+        CompletableFuture.runAsync(() -> {
+            newRun.addUrl("URL1");
+            try {
+                TimeUnit.SECONDS.sleep(30);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            newRun.addUrl("URL2");
+            try {
+                TimeUnit.SECONDS.sleep(30);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+
+            newRun.setStatus(Status.DONE);
+        });
 
 
 
