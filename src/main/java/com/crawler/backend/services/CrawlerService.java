@@ -38,8 +38,6 @@ public class CrawlerService {
         Run newRun = new Run(id);
         runs.put(id, newRun);
 
-
-
         CompletableFuture.runAsync(() -> {
 
             StringBuilder buffer;
@@ -55,6 +53,9 @@ public class CrawlerService {
                 newRun.setStatus(Status.ERROR);
                 throw new RuntimeException(e);
             }
+
+            if(buffer.toString().toLowerCase().contains(keyword.toLowerCase()))
+                newRun.addUrl(baseUrl);
 
             newRun.setStatus(Status.DONE);
         });
