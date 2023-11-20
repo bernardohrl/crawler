@@ -11,9 +11,10 @@ import com.crawler.backend.utils.Constants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.crawler.backend.utils.Constants.MAX_KEYWORD_LENGTH;
 import static com.crawler.backend.utils.Constants.MIN_KEYWORD_LENGTH;
@@ -34,15 +35,23 @@ public class CrawlerService {
         if(isKeywordValid(keyword))
             throw new InvalidKeywordException();
 
-
         Run newRun = new Run(id);
         runs.put(id, newRun);
 
-        CompletableFuture.runAsync(() -> {
+        readAndAddIfMatches(keyword, baseUrl, newRun);
 
+        return new PostResponseBody(id);
+    }
+
+    private boolean isKeywordValid (String keyword) {
+        return (keyword.length() < MIN_KEYWORD_LENGTH) || (keyword.length() > MAX_KEYWORD_LENGTH);
+    }
+
+    private void readAndAddIfMatches(String keyword, String url, Run newRun) {
+        CompletableFuture.runAsync(() -> {
             StringBuilder buffer;
             try {
-                InputStream is = new URL(baseUrl).openStream();
+                InputStream is = new URL(url).openStream();
                 buffer = new StringBuilder();
 
                 int ptr;
@@ -54,18 +63,26 @@ public class CrawlerService {
                 throw new RuntimeException(e);
             }
 
-            if(buffer.toString().toLowerCase().contains(keyword.toLowerCase()))
-                newRun.addUrl(baseUrl);
+            String html = buffer.toString().toLowerCase();
+            if(html.contains(keyword.toLowerCase()))
+                newRun.addUrl(url);
+
+            List<String> urlsOnPage = getUrlsOnPage(html);
+            urlsOnPage.forEach(newUrl -> readAndAddIfMatches(keyword, url, newRun));
 
             newRun.setStatus(Status.DONE);
         });
-
-
-
-        return new PostResponseBody(id);
     }
 
-    private boolean isKeywordValid (String keyword) {
-        return (keyword.length() < MIN_KEYWORD_LENGTH) || (keyword.length() > MAX_KEYWORD_LENGTH);
+    private List<String> getUrlsOnPage(String html) {
+        Pattern linkPattern = Pattern.compile("(<a[^>]+>.+?</a>)",  Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+        Matcher pageMatcher = linkPattern.matcher(html);
+
+        List<String> links = new ArrayList<>();
+        while(pageMatcher.find()){
+            links.add(pageMatcher.group());
+        }
+
+        return links;
     }
 }
