@@ -1,14 +1,21 @@
 package com.crawler.backend.models;
 
 import com.crawler.backend.models.enums.Status;
+import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Run {
+    @Expose
     String id;
+
+    @Expose
     Status status;
+
+    @Expose
     List<String> matchUrls = new ArrayList<>();
+
     List<String> previousUrls = new ArrayList<>();
 
 

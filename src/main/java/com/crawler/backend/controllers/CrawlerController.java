@@ -4,6 +4,7 @@ import com.crawler.backend.exceptions.InvalidKeywordException;
 import com.crawler.backend.models.PostRequestBody;
 import com.crawler.backend.services.CrawlerService;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.NoSuchElementException;
 
@@ -12,16 +13,19 @@ import static spark.Spark.*;
 
 public class CrawlerController {
 
-    public CrawlerService service = new CrawlerService();
     public CrawlerController() {}
+    public CrawlerService service = new CrawlerService();
+    Gson gson = new GsonBuilder()
+            .excludeFieldsWithoutExposeAnnotation()
+            .create();
 
     public void init() {
-        get(GET_ENDPOINT, (req, res) -> new Gson().toJson(service.getCrawl(req.params("id"))));
+        get(GET_ENDPOINT, (req, res) -> gson.toJson(service.getCrawl(req.params("id"))));
 
         post(POST_ENDPOINT, (req, res) -> {
-            PostRequestBody body = new Gson().fromJson(req.body(), PostRequestBody.class);
+            PostRequestBody body = gson.fromJson(req.body(), PostRequestBody.class);
 
-            return new Gson().toJson(service.crawl(body));
+            return gson.toJson(service.crawl(body));
         });
 
 

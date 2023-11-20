@@ -38,7 +38,10 @@ public class CrawlerService {
         Run newRun = new Run(id);
         runs.put(id, newRun);
 
-        CompletableFuture.runAsync(() -> readAndAddIfMatches(keyword, Constants.BASE_URL, newRun));
+        CompletableFuture.runAsync(() -> {
+            readAndAddIfMatches(keyword, Constants.BASE_URL, newRun);
+            newRun.setStatus(Status.DONE);
+        });
 
         return new PostResponseBody(id);
     }
@@ -63,7 +66,7 @@ public class CrawlerService {
             }
 
             String html = buffer.toString().toLowerCase();
-            if(html.contains(keyword.toLowerCase()))
+            if(html.contains(keyword.toLowerCase()) && !url.equals(Constants.BASE_URL))
                 newRun.addMatchUrl(url);
 
             List<String> urlsOnPage = getUrlsOnPage(html);
@@ -80,12 +83,12 @@ public class CrawlerService {
                 newRun.addPreviousUrl(newUrl);
             });
 
-            newRun.setStatus(Status.DONE);
-
     }
 
     private List<String> getUrlsOnPage(String html) {
-        Pattern linkPattern = Pattern.compile("(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",  Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
+        Pattern linkPattern = Pattern.compile(
+                "(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
+                Pattern.CASE_INSENSITIVE|Pattern.DOTALL);
         Matcher pageMatcher = linkPattern.matcher(html);
 
         List<String> links = new ArrayList<>();
